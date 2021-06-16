@@ -4,6 +4,8 @@ import sys
 import serial
 
 class PBJ_instruction:
+    allowable_instructions = ["continue", "start_loop", "end_loop", "call_sub", "ret_sub", "jump_if", "wait_for"]
+
     def __init__(self, write_address, pattern, instr, delay):
         if type(write_address) is not int:
             raise TypeError("write_address must be int")
@@ -18,7 +20,10 @@ class PBJ_instruction:
         else:
             self.pattern = pattern
 
-        self.instr = instr
+        if instr not in self.allowable_instructions:
+            raise ValueError("not a valid instruction")
+        else:
+            self.instr = instr
 
         if type(delay) is not int:
             raise TypeError("delay must be int")
@@ -78,7 +83,14 @@ class PBJ_interpreter:
         self.append_instr(temp_instr)
 
     def read_file(self, file_name):
-        pass
+
+        if file_name.split('.')[1] != "pbj":
+            raise ValueError("File should be a .pbj")
+
+        pbj_file = open(file_name, 'r')
+
+        for line in pbj_file:
+            self.read_line(line)
 
     
 def main():
