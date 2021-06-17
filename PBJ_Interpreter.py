@@ -160,11 +160,7 @@ class PBJ_interpreter:
 def main():
     inter = PBJ_interpreter()
 
-    inter.read_line("0 0x3 continue 99")
-    inter.read_line("1 0x5 continue 30")
-    inter.read_line("2 0x1 start_loop,9 10")
-    inter.read_line("3 0x0 wait_for,in2high, 2")
-    inter.read_line("4 0xff jump_if,now,2 20")
+    inter.read_file("test.pbj")
 
     inter.print_instr_array()
 
