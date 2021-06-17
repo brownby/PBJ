@@ -51,7 +51,7 @@ class PBJ_instruction:
             out_str = "0"
         # Otherwise, remove last " |"
         else:
-            out_str = out_str[:len(out_str)-2]
+            out_str = out_str[:len(out_str)-3]
 
         arduino_line += out_str + ", "
 
@@ -64,7 +64,7 @@ class PBJ_instruction:
             instr_str += '(' + instr_str_array[2] + "<<4)" # Location to jump to 
         elif (instr_str_array[0] == "wait_for"):
             instr_str += "WAITFOR | "
-            instr_str += instr_str_array[1] # Condition to wait for
+            instr_str += instr_str_array[1].replace('_','').upper() # Condition to wait for
         elif (instr_str_array[0] == "start_loop"):
             instr_str += "STARTLOOP | "
             instr_str += '(' + instr_str_array[1] + "<<4)" # Loop counter
