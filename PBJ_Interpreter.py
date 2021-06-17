@@ -35,7 +35,7 @@ class PBJ_instruction:
     def __str__(self):
         return str([self.write_address, self.pattern, self.instr, self.delay])
 
-    def instr_to_arduino(self, instr):
+    def to_arduino(self):
         arduino_line = "WriteSequencer("
         arduino_line += str(self.write_address) + ", "
         
@@ -44,7 +44,7 @@ class PBJ_instruction:
         # Loop through 24 bits of pattern, add "OUTx |" to the out_str
         for i in range(0, 24):
             if(hex_pattern & (1 << i) != 0):
-                out_str += "OUT" + str(i+1) + " |"
+                out_str += "OUT" + str(i+1) + " | "
         
         # If out_str is still empty, set pattern to zero
         if out_str == "":
@@ -116,6 +116,13 @@ class PBJ_interpreter:
             dt_string = now.strftime("%m%d%y_%H%M%S")
             file_name = "pbj_arduino_" + dt_string
 
+        pbj_arduino_file = open(file_name, 'w')
+        arduino_line = ""
+
+        for instr in self.instr_array:
+            arduino_line = instr.to_arduino()
+            pbj_arduino_file.write(arduino_line + '\n')
+
     
     def read_line(self, line):
         """
@@ -153,18 +160,15 @@ class PBJ_interpreter:
 def main():
     inter = PBJ_interpreter()
 
-    print("first print, should be empty")
-    inter.print_instr_array()
-
     inter.read_line("0 0x3 continue 99")
-
-    print("\nsecond print, should have one instruction")
-    inter.print_instr_array()
-
     inter.read_line("1 0x5 continue 30")
+    inter.read_line("2 0x1 start_loop,9 10")
+    inter.read_line("3 0x0 wait_for,in2high, 2")
+    inter.read_line("4 0xff jump_if,now,2 20")
 
-    print("\nthird print, should have two instructions")
     inter.print_instr_array()
+
+    inter.write_Arduino("pbj_test.txt")
 
 if __name__ == "__main__":
     main()
