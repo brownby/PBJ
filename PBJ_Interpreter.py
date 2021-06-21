@@ -99,6 +99,7 @@ class PBJ_interpreter:
     def write_serial(self, port):
         """
         Sends contents of instr_array over serial as PBJ-readable machine code
+        Not sure how to format this exactly, will talk to Jim
         """
         pass
 
@@ -119,9 +120,13 @@ class PBJ_interpreter:
         pbj_arduino_file = open(file_name, 'w')
         arduino_line = ""
 
+        pbj_arduino_file.write("// Copy and paste the following code into your setup() function\n")
+
         for instr in self.instr_array:
             arduino_line = instr.to_arduino()
             pbj_arduino_file.write(arduino_line + '\n')
+
+        pbj_arduino_file.close()
 
     
     def read_line(self, line):
