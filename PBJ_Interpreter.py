@@ -43,8 +43,6 @@ class PBJ_instruction:
             self.zero_delay_flag = True
             self.delay = int(delay[1])
 
-            
-
     def __str__(self):
         return str([self.write_address, self.pattern, self.instr, self.delay, self.zero_delay_flag])
 
@@ -101,6 +99,7 @@ class PBJ_instruction:
 class PBJ_interpreter:
     def __init__(self):
         self.instr_array = []
+        self.last_instruction_address = 0
 
     def append_instr(self, instr):
         self.instr_array.append(instr)
@@ -110,9 +109,42 @@ class PBJ_interpreter:
             print(instr)
 
     def error_check(self):
-        subroutines = [] # array of tuples with stop and start address of subroutines
+        subroutines = [] # array of arrays with stop and start address of subroutines
+        temp_subr_array = [0,0]
+        subr_start_flag = False
+        subr_ctr = 0
 
-        pass
+        i = 0
+
+        cur_instr = []
+        # First put together an array of subroutine start and end addresses
+
+        while i <= self.last_instruction_address:
+            for instr in self.instr_array:
+                if instr.write_address == i:
+                    cur_instr = instr.instr.split(',')
+                    break
+            if cur_instr[0] == "call_sub":
+                # jump to the subroutine
+                subr_start_flag = True
+                subr_start_address = int(cur_instr[1])
+                temp_subr_array[0] = subr_start_address
+                i = subr_start_address 
+                print("Subroutine called, going to address", i)
+            elif cur_instr[0] == "ret_sub" and subr_start_flag == True:
+                subr_start_flag = False
+                subr_end_address = i
+                temp_subr_array[1] = subr_end_address
+                subroutines.append(temp_subr_array)
+                # Come back from subroutine
+                i = subroutines[subr_ctr][0] + 1
+                subr_ctr += 1
+                print("Returning from subroutine")
+            else:
+                i += 1
+        
+        print(subroutines)
+            
 
     def write_serial(self, port):
         """
@@ -134,6 +166,8 @@ class PBJ_interpreter:
             now = datetime.now()
             dt_string = now.strftime("%m%d%y_%H%M%S")
             file_name = "pbj_arduino_" + dt_string
+
+        self.error_check()
 
         pbj_arduino_file = open(file_name, 'w')
         arduino_line = ""
@@ -163,6 +197,8 @@ class PBJ_interpreter:
 
         # Convert write_address and delay to ints
         split_line[0] = int(split_line[0])
+        if split_line[0] > self.last_instruction_address:
+            self.last_instruction_address = int(split_line[0])
         # split_line[3] = int(split_line[3])
 
         temp_instr = PBJ_instruction(split_line[0], split_line[1], split_line[2], split_line[3])
