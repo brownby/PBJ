@@ -27,13 +27,26 @@ class PBJ_instruction:
         # else:
         self.instr = instr
 
-        if type(delay) is not int:
-            raise TypeError("delay must be int")
+        delay = delay.split(',')
+
+        if len(delay) == 1:
+            if int(delay[0]) < 2:
+                if instr != "continue":
+                    raise Exception("Can only have zero wait states with \"continue\" instruction")
+                else:
+                    raise Exception("To implement zero wait states, you must add a comma after the 0 then the delay for the next instruciton\nFor example:\n4   0x0     continue            0,30")
+            self.delay = int(delay[0])
+            self.zero_delay_flag = False
         else:
-            self.delay = delay
+            if instr != "continue":
+                raise Exception("Can only have zero wait states with \"continue\" instruction")
+            self.zero_delay_flag = True
+            self.delay = int(delay[1])
+
+            
 
     def __str__(self):
-        return str([self.write_address, self.pattern, self.instr, self.delay])
+        return str([self.write_address, self.pattern, self.instr, self.delay, self.zero_delay_flag])
 
     def to_arduino(self):
         arduino_line = "WriteSequencer("
@@ -96,6 +109,11 @@ class PBJ_interpreter:
         for instr in self.instr_array:
             print(instr)
 
+    def error_check(self):
+        subroutines = [] # array of tuples with stop and start address of subroutines
+
+        pass
+
     def write_serial(self, port):
         """
         Sends contents of instr_array over serial as PBJ-readable machine code
@@ -145,7 +163,7 @@ class PBJ_interpreter:
 
         # Convert write_address and delay to ints
         split_line[0] = int(split_line[0])
-        split_line[3] = int(split_line[3])
+        # split_line[3] = int(split_line[3])
 
         temp_instr = PBJ_instruction(split_line[0], split_line[1], split_line[2], split_line[3])
 

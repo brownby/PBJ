@@ -2,7 +2,35 @@
 
 import sys
 import random
-from PySide2 import QtCore, QtWidgets, QtGui
+from PySide6 import QtCore, QtWidgets
+
+class Button(QtWidgets.QPushButton):
+    def __init__(self, text):
+        super().__init__()
+        self.setText(text)
+        self.setGeometry(0, 0, 100, 100)
+        # self.setFixedHeight(100)
+        # self.setFixedWidth(100)
+
+# use QVBoxLayout
+class InfoBox(QtWidgets.QGroupBox):
+    pass
+
+# use QHBoxLayout
+# potentially with a QVBoxLayout with a QHBoxLayout inside of it? so that I can display the hex underneath
+# or don't need to display the hex, it's kind of redundant
+class PatternBox(QtWidgets.QGroupBox):
+    pass
+
+# Use QTableWidget? Not sure yet
+class InstructionArrayBox(QtWidgets.QTableWidget):
+    pass
+
+# Maybe doesn't need to be a GroupBox
+# Use QComboBox for the dropdown
+# Can use this class with for the instruction input and delay input, with constructor that determines which side has the dropdown
+class InputBox(QtWidgets.QGroupBox):
+    pass
 
 class MyWidget(QtWidgets.QWidget):
     def __init__(self):
@@ -10,7 +38,7 @@ class MyWidget(QtWidgets.QWidget):
 
         self.hello = ["Hallo Welt", "Hei maailma", "Hola Mundo", "Привет мир"]
 
-        self.button = QtWidgets.QPushButton("Click me!")
+        self.button = Button("Click me!")
         self.text = QtWidgets.QLabel("Hello World",
                                      alignment=QtCore.Qt.AlignCenter)
 
@@ -28,10 +56,10 @@ class MyWidget(QtWidgets.QWidget):
 def main():
     app = QtWidgets.QApplication([])
     widget = MyWidget()
-    widget.resize(800,600)
+    widget.resize(400,300)
     widget.show()
 
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 if __name__ == "__main__":
     main()
