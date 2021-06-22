@@ -110,18 +110,16 @@ class PBJ_interpreter:
 
     def error_check(self):
         subroutines = [] # array of arrays with stop and start address of subroutines
-        temp_subr_array = [0,0]
+        temp_subr_array = [0,0,0] # index 1 is start address of subroutine, index 2 is end address, and index 3 is return address for ret_sub
         subr_start_flag = False
         subr_ctr = 0
 
-        i = 0
-
+        pc = 0
         cur_instr = []
         # First put together an array of subroutine start and end addresses
-
-        while i <= self.last_instruction_address:
+        while pc <= self.last_instruction_address:
             for instr in self.instr_array:
-                if instr.write_address == i:
+                if instr.write_address == pc:
                     cur_instr = instr.instr.split(',')
                     break
             if cur_instr[0] == "call_sub":
@@ -129,22 +127,98 @@ class PBJ_interpreter:
                 subr_start_flag = True
                 subr_start_address = int(cur_instr[1])
                 temp_subr_array[0] = subr_start_address
-                i = subr_start_address 
-                print("Subroutine called, going to address", i)
+                temp_subr_array[2] = instr.write_address
+                pc = subr_start_address 
+                print("Subroutine called, going to address", pc)
             elif cur_instr[0] == "ret_sub" and subr_start_flag == True:
                 subr_start_flag = False
-                subr_end_address = i
+                subr_end_address = pc
                 temp_subr_array[1] = subr_end_address
                 subroutines.append(temp_subr_array)
                 # Come back from subroutine
-                i = subroutines[subr_ctr][0] + 1
+                pc = subroutines[subr_ctr][0] + 1
                 subr_ctr += 1
                 print("Returning from subroutine")
             else:
-                i += 1
+                pc += 1
         
         print(subroutines)
+
+        # Now go through program and check for jumping out of loops and subroutines
+        loop_flag = False # set to true if we're in a loop
+        subr_flag = False # set to true if we're in a subroutine
+        loop_ctr = 0
+        pc = 0
+        cur_instr = []
+
+        while pc <= self.last_instruction_address:
+            for instr in self.instr_array:
+                if instr.write_address == pc:
+                    cur_instr = instr.instr.split(',')
+                    break
+
+            if cur_instr[0] == "start_loop": # Start of a loop, increment loop ctr
+                loop_flag = True
+                loop_ctr += 1
+            elif cur_instr[0] == "end_loop": # End of a loop
+                loop_ctr -= 1
+                if loop_ctr == 0: # only set back to false if we're outside of all loops
+                    loop_flag = False
+            elif cur_instr[0] == "jump_if":
+                if loop_flag == True:
+                    raise Exception("Cannot jump out of loops")
+                elif subr_flag == True:
+                    print(Warning("Inadvisable to jump out of subroutines. Consider ret_sub if you want to leave the subroutine instead."))
+            elif instr.write_address in [subroutine[0] for subroutine in subroutines]: # Check if write address is the start of a subroutine  
+                subr_flag = True
+            elif instr.write_address in [subroutine[1] for subroutine in subroutines]: # Check if write address is the end of a subroutine (could also check in instruction is ret_sub)
+                subr_flag = False
             
+            if loop_ctr > 16:
+                raise Exception("Loops and subroutines (total) can only be nested 16 deep")
+            pc += 1
+
+        # Now make a pass at checking for nesting subroutines
+        # TODO:
+        #   This will infinitely loop if the subroutine is stored in an address below the call_sub, because it will get down then jump back up
+        #   The method below "fixes" this with a sort of clumsy break if the write_address isn't in the .pbj file, but that's not ideal
+        # pc = 0
+        # cur_instr = []
+        # loop_ctr = 0
+        # while pc <= self.last_instruction_address:
+            
+        #     if pc in [i.write_address for i in self.instr_array]:
+        #         for instr in self.instr_array:
+        #             if instr.write_address == pc:
+        #                 cur_instr = instr.instr.split(',')
+        #                 break
+        #     else:
+        #         print("Reached a point in memory with no instructions stored")
+        #         break
+            
+            
+        #     if cur_instr[0] == "start_loop":
+        #         loop_ctr += 1
+        #         pc += 1
+        #     elif cur_instr[0] == "end_loop":
+        #         loop_ctr -= 1
+        #         pc += 1
+        #     elif cur_instr[0] == "call_sub":
+        #         loop_ctr += 1
+        #         pc = int(cur_instr[1]) # jump to subroutine
+        #     elif cur_instr[0] == "ret_sub":
+        #         loop_ctr -= 1
+        #         # Find return address for this subroutine in subroutines list, then jump to following instr
+        #         for subroutine in subroutines:
+        #             if instr.write_address == subroutine[1]:
+        #                 pc = subroutine[2] + 1
+        #                 break
+        #     else:
+        #         pc += 1
+        #     print(pc)
+        #     if loop_ctr > 16:
+        #         raise Exception("Total loops + subroutines can only be nested to 16")
+
 
     def write_serial(self, port):
         """
