@@ -127,6 +127,7 @@ class PBJ_interpreter:
     def __init__(self):
         self.instr_array = []
         self.last_instruction_address = 0
+        self.address_array = []
 
     def append_instr(self, instr):
         self.instr_array.append(instr)
@@ -172,6 +173,7 @@ class PBJ_interpreter:
         # print(subroutines)
 
         # Now go through program and check for jumping out of loops and subroutines
+        # Also check for jumping to addresses where instructions aren't written
         loop_flag = False # set to true if we're in a loop
         subr_flag = False # set to true if we're in a subroutine
         loop_ctr = 0
@@ -193,13 +195,18 @@ class PBJ_interpreter:
                     loop_flag = False
             elif cur_instr[0] == "jump_if":
                 if loop_flag == True:
-                    raise Exception("Cannot jump out of loops")
+                    raise Exception("ERROR: write_address:" + str(pc) + " Cannot jump out of loops")
+                elif not (int(cur_instr[2]) in self.address_array):
+                    raise Exception("ERROR: write_address:" + str(pc) + " Attempt to jump to a memory address with no instruction")
                 elif subr_flag == True:
-                    print(Warning("Inadvisable to jump out of subroutines. Consider ret_sub if you want to leave the subroutine instead."))
+                    print(Warning("WARNING: write_address:" + str(pc) + " Inadvisable to jump out of subroutines. Consider ret_sub if you want to leave the subroutine instead."))
             elif instr.write_address in [subroutine[0] for subroutine in subroutines]: # Check if write address is the start of a subroutine  
                 subr_flag = True
             elif instr.write_address in [subroutine[1] for subroutine in subroutines]: # Check if write address is the end of a subroutine (could also check in instruction is ret_sub)
                 subr_flag = False
+            elif cur_instr[0] == "call_sub":
+                if not (int(cur_instr[1]) in self.address_array):
+                    raise Exception("ERROR: write_address:" + str(pc) + " Attempt to call to a subroutine, but there is no instruction stored at this address")
             
             if loop_ctr > 16:
                 raise Exception("Loops and subroutines (total) can only be nested 16 deep")
@@ -283,6 +290,8 @@ class PBJ_interpreter:
 
         ser.close()
 
+        print("PBJ device on port " + port + " updated")
+
     def write_Arduino(self, file_name="default"):
         """
         Writes contents of instr_array to a .txt file that can be copied and pasted into an Arduino setup() function to write to a PBJ
@@ -310,6 +319,8 @@ class PBJ_interpreter:
 
         pbj_arduino_file.close()
 
+        print("PBJ code for Arduino written to: " + file_name)
+
     
     def read_line(self, line):
         """
@@ -329,11 +340,11 @@ class PBJ_interpreter:
         split_line[0] = int(split_line[0])
         if split_line[0] > self.last_instruction_address:
             self.last_instruction_address = int(split_line[0])
-        # split_line[3] = int(split_line[3])
 
         temp_instr = PBJ_instruction(split_line[0], split_line[1], split_line[2], split_line[3])
 
         self.append_instr(temp_instr)
+        self.address_array.append(split_line[0])
 
     def read_file(self, file_name):
 
@@ -379,7 +390,7 @@ def main(argv):
     inter.read_file(input_file)
 
     if arduino_flag == True:
-            inter.write_Arduino(output_file)
+        inter.write_Arduino(output_file)
 
     if serial_flag == True:
         inter.write_serial(serial_port)
