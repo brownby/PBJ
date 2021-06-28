@@ -97,6 +97,33 @@ class PBJ_instruction:
 # an Arduino file OR send them directly over serial to a PBJ
 ###
 class PBJ_interpreter:
+    opcodes = {
+        "continue" : 0,
+        "start_loop" : 2,
+        "end_loop" : 3,
+        "call_sub" : 4,
+        "ret_sub" : 5,
+        "jump_if" : 6, 
+        "wait_for" : 8
+    }
+
+    conditions = {
+        "now" : 0,
+        "never" : 0x00010000,
+        "in1_low" : 0x00020000,
+        "in1_high" : 0x00030000,
+        "in2_low" : 0x00040000,
+        "in2_high": 0x00050000,
+        "in3_low" : 0x00060000,
+        "in3_high" : 0x00070000,
+        "in4_low" : 0x00080000,
+        "in4_high" : 0x00090000,
+        "we_low" : 0x000A0000,
+        "we_high" : 0x000B0000,
+        "mosi_low" : 0x000C0000,
+        "mosi_high" : 0x000D0000
+    }
+
     def __init__(self):
         self.instr_array = []
         self.last_instruction_address = 0
@@ -223,9 +250,38 @@ class PBJ_interpreter:
     def write_serial(self, port):
         """
         Sends contents of instr_array over serial as PBJ-readable machine code
-        Not sure how to format this exactly, will talk to Jim
+        Format for commands over serial:
+            PBJ<address>,<pattern>,<command>,<delay>;
+
+            where address, pattern, command, and delay are all decimal numbers
         """
-        pass
+        self.error_check()
+
+        ser = serial.Serial(port)
+
+        ser.open()
+
+        for instr in self.instr_array:
+            command_arr = instr.instr.split(',')
+            command_int = 0
+            if command_arr[0] == "start_loop":
+                command_int |= int(command_arr[1]) << 19
+            elif command_arr[0] == "call_sub":
+                command_int |= int(command_arr[1]) << 13
+            elif command_arr[0] == "jump_if" or command_arr[0] == "wait_for":
+                command_int |= self.conditions[command_arr[1]]
+                if command_arr[0] == "jump_if":
+                    command_int |= int(command_arr[2]) << 13
+            command_int |= self.opcodes[command_arr[0]]
+            command = str(command_int)
+
+            delay = instr.delay
+            if instr.zero_delay_flag == True:
+                delay |= 0x80000000
+
+            ser.write("PBJ" + str(instr.write_address) + ',' + str(int(instr.pattern, base=16)) + ',' + command + ',' + str(delay) + ";\n")
+
+        ser.close()
 
     def write_Arduino(self, file_name="default"):
         """
