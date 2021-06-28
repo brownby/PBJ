@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import sys
+import sys, getopt
 import serial
 from datetime import datetime
 
@@ -156,7 +156,7 @@ class PBJ_interpreter:
                 temp_subr_array[0] = subr_start_address
                 temp_subr_array[2] = instr.write_address
                 pc = subr_start_address 
-                print("Subroutine called, going to address", pc)
+                # print("Subroutine called, going to address", pc)
             elif cur_instr[0] == "ret_sub" and subr_start_flag == True:
                 subr_start_flag = False
                 subr_end_address = pc
@@ -165,11 +165,11 @@ class PBJ_interpreter:
                 # Come back from subroutine
                 pc = subroutines[subr_ctr][0] + 1
                 subr_ctr += 1
-                print("Returning from subroutine")
+                # print("Returning from subroutine")
             else:
                 pc += 1
         
-        print(subroutines)
+        # print(subroutines)
 
         # Now go through program and check for jumping out of loops and subroutines
         loop_flag = False # set to true if we're in a loop
@@ -346,14 +346,43 @@ class PBJ_interpreter:
             self.read_line(line)
 
     
-def main():
+def main(argv):
+    input_file = ""
+    output_file = ""
+    serial_port = ""
+    arduino_flag = False
+    serial_flag = False
+    
+    try:
+        opts, args = getopt.getopt(argv, "hi:o:p:", ["help", "input_file=", "output_file=", "serial_port="])
+    except getopt.GetoptError:
+        print("usage:\nPBJ_interpreter.py -i <input_file> -o <output_file>\nor\nPBJ_interpreter.py -i <input_file> -p <serial_port>")
+        sys.exit(2)
+    
+    for opt, arg in opts:
+        if opt == "-h":
+            print("usage:\nPBJ_interpreter.py -i <input_file> -o <output_file>\nor\nPBJ_interpreter.py -i <input_file> -p <serial_port>")
+        elif opt in ("-i", "--input_file"):
+            input_file = arg
+        elif opt in ("-o", "--output_file"):
+            output_file = arg
+            arduino_flag = True
+        elif opt in ("-p", "--serial_port"):
+            serial_port = arg
+            serial_flag = True
+
+    if input_file == "":
+        print("Input file is empty!")
+        sys.exit(2)
+
     inter = PBJ_interpreter()
+    inter.read_file(input_file)
 
-    inter.read_file("test.pbj")
+    if serial_flag == True:
+        inter.write_serial(serial_port)
 
-    inter.print_instr_array()
-
-    inter.write_Arduino("pbj_test.txt")
+    if arduino_flag == True:
+        inter.write_Arduino(output_file)
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])
