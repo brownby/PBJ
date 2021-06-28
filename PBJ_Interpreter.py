@@ -378,11 +378,12 @@ def main(argv):
     inter = PBJ_interpreter()
     inter.read_file(input_file)
 
+    if arduino_flag == True:
+            inter.write_Arduino(output_file)
+
     if serial_flag == True:
         inter.write_serial(serial_port)
 
-    if arduino_flag == True:
-        inter.write_Arduino(output_file)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
