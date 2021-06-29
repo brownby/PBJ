@@ -47,7 +47,7 @@ For more details on what these commands do and what arguments they take, check t
 
 **Important notes on delays:** the `delay` introduces an integer number of "wait states", each of which is one clock cycle (or 10 ns), before going to the next instruction. 
 Because of the pipelining of the processor, **any non-`continue` command *and the command before it* should have at least two wait states**. 
-In practice, make sure that <delay> is always at least 2. If you require 0 wait states, this is allowable for `continue` commands, but with a small quirk. 
+In practice, make sure that `delay` is always at least 2. If you require 0 wait states, this is allowable for `continue` commands, but with a small quirk. 
 Instead of just being one number, the delay parameter should be two numbers separated by a comma. The first number will be 0, indicating a 0 wait state, and 
 the next number should be the **delay for the next instruction**. For example:
 ```
