@@ -16,11 +16,16 @@ The interpreter accepts `.pbj` files, which are PBJ assembly files. A line of PB
 ```
 <address> <pattern> <command> <delay>
 ```
-Where the `pattern` is in hexadecimal, and there is any amount of white space between the above parameters, e.g:
+Where the `pattern` is either in hexadecimal OR comma separated list of outputs to be HIGH, and there is any amount of white space between the above parameters, e.g:
 
 ```
 0 0x3 continue 99
 ```
+or, equivalently:
+```
+0 out1,out3 continue 99
+```
+(You can mix and match lines that use hex and lines that are a list of outputs in the same `.pbj` file. If you want no outputs to be HIGH, put "0" or "0x0" in for the `pattern`).
 
 The `address` should be a number between 0 and 1023. The `pattern` should be a 24-bit number (i.e. at most 0xffffff) [**NOTE:** some PBJs only have 8-bit outputs, not 24]
 
