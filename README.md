@@ -23,7 +23,7 @@ Where the `pattern` is either in hexadecimal OR comma separated list of outputs 
 ```
 or, equivalently:
 ```
-0 out1,out3 continue 99
+0 out1,out2 continue 99
 ```
 (You can mix and match lines that use hex and lines that are a list of outputs in the same `.pbj` file. If you want no outputs to be HIGH, put "0" or "0x0" in for the `pattern`).
 
