@@ -2,25 +2,60 @@
 
 import sys
 import random
+from typing import Pattern
 from PySide6 import QtCore, QtWidgets
 
 class Button(QtWidgets.QPushButton):
     def __init__(self, text):
         super().__init__()
         self.setText(text)
-        self.setGeometry(0, 0, 100, 100)
+        # self.setGeometry(0, 0, 100, 100)
         # self.setFixedHeight(100)
         # self.setFixedWidth(100)
 
-# use QVBoxLayout
 class InfoBox(QtWidgets.QGroupBox):
-    pass
+    def __init__(self, title):
+        super().__init__()
+        self.setTitle(title)
 
-# use QHBoxLayout
-# potentially with a QVBoxLayout with a QHBoxLayout inside of it? so that I can display the hex underneath
-# or don't need to display the hex, it's kind of redundant
+        # TODO: find better widget for these labels
+        self.version_label = QtWidgets.QLabel()
+        self.com_label = QtWidgets.QLabel()
+
+        self.layout = QtWidgets.QFormLayout()
+        self.layout.addRow("PBJ Version:", self.version_label)
+        self.layout.addRow("COM port:", self.com_label)
+        self.setLayout(self.layout)
+
 class PatternBox(QtWidgets.QGroupBox):
-    pass
+    def __init__(self):
+        super().__init__()
+        self.setTitle("Pattern")
+        self.layout = QtWidgets.QGridLayout()
+
+        # Array representing the status (checked or unchecked) of each checkbox as booleans
+        # (1 = checked)
+        self.checkbox_status = [0]*24
+
+        # Array of checkbox widgets
+        # index 0 is LSB, index 23 is MSB
+        self.checkboxes = []
+        for i in range(24):
+            self.checkboxes.append(QtWidgets.QCheckBox())
+
+        # Use 23-i so that checkboxes are displayed from MSB to LSB, left to right
+        for i in range(24):
+            self.layout.addWidget(self.checkboxes[i], 1, 23-i) 
+            self.layout.addWidget(QtWidgets.QLabel(str(i)), 0, 23-i)
+        # TODO: figure out formatting here so that labels aren't so far away
+
+
+        self.setLayout(self.layout)
+
+    def update_checkbox_status(self):
+        for i in range(24):
+            self.checkbox_status[i] = self.checkboxes[i].isChecked()
+
 
 # Use QTableWidget? Not sure yet
 class InstructionArrayBox(QtWidgets.QTableWidget):
@@ -32,7 +67,7 @@ class InstructionArrayBox(QtWidgets.QTableWidget):
 class InputBox(QtWidgets.QGroupBox):
     pass
 
-class MyWidget(QtWidgets.QWidget):
+class PBJ_GUI(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
 
@@ -42,10 +77,16 @@ class MyWidget(QtWidgets.QWidget):
         self.text = QtWidgets.QLabel("Hello World",
                                      alignment=QtCore.Qt.AlignCenter)
 
-        self.layout = QtWidgets.QVBoxLayout()
+        self.info_box = InfoBox("Information")
+        self.pattern_box = PatternBox()
+
+        self.layout = QtWidgets.QGridLayout()
         self.layout.addWidget(self.text)
         self.layout.addWidget(self.button)
+        self.layout.addWidget(self.info_box)
+        self.layout.addWidget(self.pattern_box)
         self.setLayout(self.layout)
+
 
         self.button.clicked.connect(self.magic)
 
@@ -55,9 +96,9 @@ class MyWidget(QtWidgets.QWidget):
 
 def main():
     app = QtWidgets.QApplication([])
-    widget = MyWidget()
-    widget.resize(400,300)
-    widget.show()
+    gui = PBJ_GUI()
+    gui.resize(400,300)
+    gui.show()
 
     sys.exit(app.exec())
 
