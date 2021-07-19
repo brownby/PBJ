@@ -15,11 +15,25 @@ class PBJ_instruction:
         else:
             self.write_address = write_address
 
-        hex_pattern = int(pattern, base=16)
+        pattern = pattern.split(',')
+        hex_pattern = 0
+        if len(pattern) > 1 or pattern[0][0].lower() == 'o':
+            outputs = []
+            for output in pattern:
+                out_num = int(output[-1])
+                outputs.append(out_num)
+
+            # Build hex output 
+            for num in outputs:
+                hex_pattern |= 1 << (num-1) # minus 1 because outputs are 1-reference instead of 0-reference
+        else:
+            hex_pattern = int(pattern[0], base=16)
+
+
         if hex_pattern > ((1 << 24) - 1) or hex_pattern < 0:
             raise ValueError("pattern must be at most 24-bit")
         else:
-            self.pattern = pattern
+            self.pattern = hex(hex_pattern)
 
         # NEED TO FIGURE OUT HOW TO HANDLE JUMP_IF AND WAIT_FOR
         # if instr not in self.allowable_instructions:
@@ -336,7 +350,7 @@ class PBJ_interpreter:
         # Parse line into array of strings
         split_line = line.split() # default splits by space, which is fine
 
-        # Convert write_address and delay to ints
+        # Convert write_address to int, keep track of highest address in memory
         split_line[0] = int(split_line[0])
         if split_line[0] > self.last_instruction_address:
             self.last_instruction_address = int(split_line[0])
