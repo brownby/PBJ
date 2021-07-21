@@ -9,6 +9,7 @@ class Button(QtWidgets.QPushButton):
     def __init__(self, text):
         super().__init__()
         self.setText(text)
+        self.setFixedSize(150,50)
         # self.setGeometry(0, 0, 100, 100)
         # self.setFixedHeight(100)
         # self.setFixedWidth(100)
@@ -19,12 +20,19 @@ class InfoBox(QtWidgets.QGroupBox):
         self.setTitle(title)
 
         # TODO: find better widget for these labels
-        self.version_label = QtWidgets.QLabel()
-        self.com_label = QtWidgets.QLabel()
+        # self.version_label = QtWidgets.QLabel()
+        # self.com_label = QtWidgets.QLabel()
+
+        self.version_label = QtWidgets.QLineEdit()
+        self.com_label = QtWidgets.QLineEdit("No board detected")
+        self.version_label.setReadOnly(True)
+        self.com_label.setReadOnly(True)
 
         self.layout = QtWidgets.QFormLayout()
         self.layout.addRow("PBJ Version:", self.version_label)
         self.layout.addRow("COM port:", self.com_label)
+        self.layout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
+
         self.setLayout(self.layout)
 
 class PatternBox(QtWidgets.QGroupBox):
@@ -68,6 +76,9 @@ class InstructionArrayBox(QtWidgets.QTableWidget):
         self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.setMaximumWidth(525)
+        self.setMinimumWidth(500)
+        self.setMinimumHeight(300)
+        # self.setMaximumHeight()
 
 # Maybe doesn't need to be a GroupBox
 # Use QComboBox for the dropdown
@@ -126,26 +137,34 @@ class PBJ_GUI(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
 
-        self.hello = ["Hallo Welt", "Hei maailma", "Hola Mundo", "Привет мир"]
+        # self.
 
-        self.button = Button("Click me!")
-        self.text = QtWidgets.QLabel("Hello World",
-                                     alignment=QtCore.Qt.AlignCenter)
-
+        self.loadBoard_button = Button("Load Board")
+        self.programBoard_button = Button("Program Board")
+        self.writeFile_button = Button("Write .pbj File")
+        self.loadFile_button = Button("Load .pbj File")
+        self.addInstruction_button = Button("Add Instruction Below")
+        self.removeInstruction_button = Button("Remove Instruction")
         self.info_box = InfoBox("Information")
         self.pattern_box = PatternBox()
 
         self.layout = QtWidgets.QGridLayout()
-        self.layout.addWidget(self.text)
-        self.layout.addWidget(self.button)
-        self.layout.addWidget(self.info_box)
+        # self.layout.setSpacing(0)
+        # self.layout.addWidget(self.text)
+        self.layout.addWidget(self.loadBoard_button, 0, 1)
+        self.layout.addWidget(self.programBoard_button, 0, 2)
+        self.layout.addWidget(self.writeFile_button, 0 , 3)
+        self.layout.addWidget(self.loadFile_button, 0, 4)
+        self.layout.addWidget(self.info_box, 0, 0)
         # self.layout.addWidget(self.pattern_box)
-        self.layout.addWidget(InstructionInputBox())
-        self.layout.addWidget(InstructionArrayBox())
+        self.layout.addWidget(InstructionInputBox(), 1, 0, 1, 5)
+        self.layout.addWidget(InstructionArrayBox(), 2, 0, 2, 4)
+        self.layout.addWidget(self.addInstruction_button, 2, 3)
+        self.layout.addWidget(self.removeInstruction_button, 2, 4)
         self.setLayout(self.layout)
 
 
-        self.button.clicked.connect(self.magic)
+        # self.button.clicked.connect(self.magic)
 
     @QtCore.Slot()
     def magic(self):
@@ -154,7 +173,8 @@ class PBJ_GUI(QtWidgets.QWidget):
 def main():
     app = QtWidgets.QApplication([])
     gui = PBJ_GUI()
-    gui.resize(525,600)
+    gui.setWindowTitle("PBJ")
+    # gui.resize(525,600)
     gui.show()
 
     sys.exit(app.exec())
