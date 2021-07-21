@@ -30,8 +30,9 @@ class InfoBox(QtWidgets.QGroupBox):
 class PatternBox(QtWidgets.QGroupBox):
     def __init__(self):
         super().__init__()
-        self.setTitle("Pattern")
+        self.setTitle("Output State")
         self.layout = QtWidgets.QGridLayout()
+        self.layout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
 
         # Array representing the status (checked or unchecked) of each checkbox as booleans
         # (1 = checked)
@@ -59,13 +60,67 @@ class PatternBox(QtWidgets.QGroupBox):
 
 # Use QTableWidget? Not sure yet
 class InstructionArrayBox(QtWidgets.QTableWidget):
-    pass
+    def __init__(self):
+        super().__init__()
+        # self.setRowCount(12)
+        self.setColumnCount(5)
+        self.setHorizontalHeaderLabels(["Address", "Delay", "Output State", "Instruction", "Argument(s)"])
+        self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.setMaximumWidth(525)
 
 # Maybe doesn't need to be a GroupBox
 # Use QComboBox for the dropdown
 # Can use this class with for the instruction input and delay input, with constructor that determines which side has the dropdown
-class InputBox(QtWidgets.QGroupBox):
-    pass
+class DelayInputBox(QtWidgets.QGroupBox):
+    def __init__(self):
+        super().__init__()
+        self.layout = QtWidgets.QHBoxLayout()
+        self.setTitle("Delay")
+
+        self.input_delay = QtWidgets.QLineEdit()
+        self.input_delay.setFixedWidth(75)
+        self.label_delay = QtWidgets.QLabel("ns")
+        self.layout.addWidget(self.input_delay)
+        self.layout.addWidget(self.label_delay)
+        self.layout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
+        self.setLayout(self.layout)
+
+class FlowInputBox(QtWidgets.QGroupBox):
+    def __init__(self):
+        super().__init__()
+        self.layout = QtWidgets.QHBoxLayout()
+        self.setTitle("Flow Control")
+
+        self.dropdown = QtWidgets.QComboBox()
+        self.dropdown.addItems(["CONTINUE", "START_LOOP", "END_LOOP", "CALL_SUB", "RET_SUB", "JUMP_IF", "WAIT_FOR"])
+
+        self.arg_list = QtWidgets.QLineEdit()
+        self.arg_list.setFixedWidth(75)
+
+        self.layout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
+        self.layout.addWidget(self.dropdown)
+        self.layout.addWidget(self.arg_list)
+
+
+        self.setLayout(self.layout)
+
+        
+
+class InstructionInputBox(QtWidgets.QGroupBox):
+    def __init__(self):
+        super().__init__()
+        self.layout = QtWidgets.QGridLayout()
+        self.setTitle("Instruction")
+        self.flow_input = FlowInputBox()
+        self.delay_input = DelayInputBox()
+        self.pattern_box = PatternBox()
+        self.setLayout(self.layout)
+
+        self.layout.addWidget(self.delay_input, 0, 0)
+        self.layout.addWidget(self.pattern_box, 0, 1)
+        self.layout.addWidget(self.flow_input, 0, 2)
+        self.layout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
 
 class PBJ_GUI(QtWidgets.QWidget):
     def __init__(self):
@@ -84,7 +139,9 @@ class PBJ_GUI(QtWidgets.QWidget):
         self.layout.addWidget(self.text)
         self.layout.addWidget(self.button)
         self.layout.addWidget(self.info_box)
-        self.layout.addWidget(self.pattern_box)
+        # self.layout.addWidget(self.pattern_box)
+        self.layout.addWidget(InstructionInputBox())
+        self.layout.addWidget(InstructionArrayBox())
         self.setLayout(self.layout)
 
 
@@ -97,7 +154,7 @@ class PBJ_GUI(QtWidgets.QWidget):
 def main():
     app = QtWidgets.QApplication([])
     gui = PBJ_GUI()
-    gui.resize(400,300)
+    gui.resize(525,600)
     gui.show()
 
     sys.exit(app.exec())
