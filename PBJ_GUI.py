@@ -116,8 +116,6 @@ class FlowInputBox(QtWidgets.QGroupBox):
 
         self.setLayout(self.layout)
 
-        
-
 class InstructionInputBox(QtWidgets.QGroupBox):
     def __init__(self):
         super().__init__()
@@ -133,6 +131,24 @@ class InstructionInputBox(QtWidgets.QGroupBox):
         self.layout.addWidget(self.flow_input, 0, 2)
         self.layout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
 
+class FileNameInputBox(QtWidgets.QGroupBox):
+    def __init__(self):
+        super().__init__()
+        self.layout = QtWidgets.QGridLayout()
+
+        self.setTitle(".pbj File")
+        self.setLayout(self.layout)
+
+        self.writeFile_button = Button("Write .pbj File")
+        self.loadFile_button = Button("Load .pbj File")
+        self.fileName_input = QtWidgets.QLineEdit("Enter file name here")
+
+        self.layout.addWidget(self.writeFile_button, 0, 0)
+        self.layout.addWidget(self.loadFile_button, 0, 1)
+        self.layout.addWidget(self.fileName_input, 1, 1)
+        self.layout.setSizeConstraint(QtWidgets.QLayout.SetFixedSize)
+        
+
 class PBJ_GUI(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
@@ -141,20 +157,18 @@ class PBJ_GUI(QtWidgets.QWidget):
 
         self.loadBoard_button = Button("Load Board")
         self.programBoard_button = Button("Program Board")
-        self.writeFile_button = Button("Write .pbj File")
-        self.loadFile_button = Button("Load .pbj File")
         self.addInstruction_button = Button("Add Instruction Below")
         self.removeInstruction_button = Button("Remove Instruction")
         self.info_box = InfoBox("Information")
         self.pattern_box = PatternBox()
+        self.fileNameInput_box = FileNameInputBox()
 
         self.layout = QtWidgets.QGridLayout()
         # self.layout.setSpacing(0)
         # self.layout.addWidget(self.text)
         self.layout.addWidget(self.loadBoard_button, 0, 1)
         self.layout.addWidget(self.programBoard_button, 0, 2)
-        self.layout.addWidget(self.writeFile_button, 0 , 3)
-        self.layout.addWidget(self.loadFile_button, 0, 4)
+        self.layout.addWidget(self.fileNameInput_box, 0, 3, 1, 2)
         self.layout.addWidget(self.info_box, 0, 0)
         # self.layout.addWidget(self.pattern_box)
         self.layout.addWidget(InstructionInputBox(), 1, 0, 1, 5)
