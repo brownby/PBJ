@@ -4,6 +4,7 @@ import sys
 import random
 from typing import Pattern
 from PySide6 import QtCore, QtWidgets
+from PBJ_Interpreter import PBJ_interpreter
 
 class Button(QtWidgets.QPushButton):
     def __init__(self, text):
@@ -68,8 +69,10 @@ class PatternBox(QtWidgets.QGroupBox):
 
 # Use QTableWidget? Not sure yet
 class InstructionArrayBox(QtWidgets.QTableWidget):
-    def __init__(self):
+    def __init__(self, pbj):
         super().__init__()
+
+        self.pbj_int = pbj # PBJ interpreter
         # self.setRowCount(12)
         self.setColumnCount(5)
         self.setHorizontalHeaderLabels(["Address", "Delay", "Output State", "Instruction", "Argument(s)"])
@@ -150,10 +153,10 @@ class FileNameInputBox(QtWidgets.QGroupBox):
         
 
 class PBJ_GUI(QtWidgets.QWidget):
-    def __init__(self):
+    def __init__(self, pbj):
         super().__init__()
 
-        # self.
+        self.pbj = pbj
 
         self.loadBoard_button = Button("Load Board")
         self.programBoard_button = Button("Program Board")
@@ -172,7 +175,7 @@ class PBJ_GUI(QtWidgets.QWidget):
         self.layout.addWidget(self.info_box, 0, 0)
         # self.layout.addWidget(self.pattern_box)
         self.layout.addWidget(InstructionInputBox(), 1, 0, 1, 5)
-        self.layout.addWidget(InstructionArrayBox(), 2, 0, 2, 4)
+        self.layout.addWidget(InstructionArrayBox(self.pbj), 2, 0, 2, 4)
         self.layout.addWidget(self.addInstruction_button, 2, 3)
         self.layout.addWidget(self.removeInstruction_button, 2, 4)
         self.setLayout(self.layout)
@@ -185,8 +188,11 @@ class PBJ_GUI(QtWidgets.QWidget):
         self.text.setText(random.choice(self.hello))
 
 def main():
+
+    pbj = PBJ_interpreter()
+
     app = QtWidgets.QApplication([])
-    gui = PBJ_GUI()
+    gui = PBJ_GUI(pbj)
     gui.setWindowTitle("PBJ")
     # gui.resize(525,600)
     gui.show()
